@@ -104,6 +104,7 @@ int main(int argc, char *argv[])
   RtAudio::StreamOptions options;
   //options.flags |= RTAUDIO_NONINTERLEAVED;
 
+  bufferBytes = bufferFrames * channels * sizeof( MY_TYPE );
   try {
     adac.openStream( &oParams, &iParams, FORMAT, fs, &bufferFrames, &inout, (void *)&bufferBytes, &options );
   }
@@ -111,8 +112,6 @@ int main(int argc, char *argv[])
     std::cout << '\n' << e.getMessage() << '\n' << std::endl;
     exit( 1 );
   }
-
-  bufferBytes = bufferFrames * channels * sizeof( MY_TYPE );
 
   // Test RtAudio functionality for reporting latency.
   std::cout << "\nStream latency = " << adac.getStreamLatency() << " frames" << std::endl;

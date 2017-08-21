@@ -22,7 +22,7 @@
     STK WWW site: http://ccrma.stanford.edu/software/stk/
 
     The Synthesis ToolKit in C++ (STK)
-    Copyright (c) 1995--2014 Perry R. Cook and Gary P. Scavone
+    Copyright (c) 1995--2016 Perry R. Cook and Gary P. Scavone
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation files
@@ -317,22 +317,22 @@ void StkFrames :: resize( size_t nFrames, unsigned int nChannels, StkFloat value
   for ( size_t i=0; i<size_; i++ ) data_[i] = value;
 }
     
-StkFrames& StkFrames::copyChannel(unsigned int sourceChannel,StkFrames& destinationFrames, unsigned int destinationChannel) const
+StkFrames& StkFrames::getChannel(unsigned int sourceChannel,StkFrames& destinationFrames, unsigned int destinationChannel) const
 {
 #if defined(_STK_DEBUG_)
   if (sourceChannel > channels() - 1) {
     std::ostringstream error;
-    error << "StkFrames::copyChannel invalid sourceChannel (" << sourceChannel << ")";
+    error << "StkFrames::getChannel invalid sourceChannel (" << sourceChannel << ")";
     Stk::handleError( error.str(), StkError::FUNCTION_ARGUMENT);
   }
   if (destinationChannel > destinationFrames.channels() - 1) {
     std::ostringstream error;
-    error << "StkFrames::copyChannel invalid destinationChannel (" << destinationChannel << ")";
+    error << "StkFrames::getChannel invalid destinationChannel (" << destinationChannel << ")";
     Stk::handleError( error.str(), StkError::FUNCTION_ARGUMENT );
   }
   if (destinationFrames.frames() < frames()) {
     std::ostringstream error;
-    error << "StkFrames::copyChannel destination.frames() < frames()";
+    error << "StkFrames::getChannel destination.frames() < frames()";
     Stk::handleError( error.str(), StkError::MEMORY_ACCESS);
   }
 #endif
@@ -343,6 +343,32 @@ StkFrames& StkFrames::copyChannel(unsigned int sourceChannel,StkFrames& destinat
   }
   return destinationFrames;
         
+}
+
+void StkFrames::setChannel(unsigned int destinationChannel, const stk::StkFrames &sourceFrames,unsigned int sourceChannel)
+{
+#if defined(_STK_DEBUG_)
+  if (sourceChannel > sourceFrames.channels() - 1) {
+    std::ostringstream error;
+    error << "StkFrames::setChannel invalid sourceChannel (" << sourceChannel << ")";
+    Stk::handleError( error.str(), StkError::FUNCTION_ARGUMENT);
+  }
+  if (destinationChannel > channels() - 1) {
+    std::ostringstream error;
+    error << "StkFrames::setChannel invalid channel (" << destinationChannel << ")";
+    Stk::handleError( error.str(), StkError::FUNCTION_ARGUMENT );
+  }
+  if (sourceFrames.frames() != frames()) {
+    std::ostringstream error;
+    error << "StkFrames::setChannel sourceFrames.frames() != frames()";
+    Stk::handleError( error.str(), StkError::MEMORY_ACCESS);
+  }
+#endif
+  unsigned int sourceHop = sourceFrames.nChannels_;
+  unsigned int destinationHop = nChannels_;
+  for (int i  = destinationChannel,j = sourceChannel ; i < nFrames_ * nChannels_; i+=destinationHop,j+=sourceHop) {
+    data_[i] = sourceFrames[j];
+  }
 }
 
 StkFloat StkFrames :: interpolate( StkFloat frame, unsigned int channel ) const

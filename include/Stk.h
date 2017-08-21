@@ -40,7 +40,7 @@ namespace stk {
     STK WWW site: http://ccrma.stanford.edu/software/stk/
 
     The Synthesis ToolKit in C++ (STK)
-    Copyright (c) 1995--2014 Perry R. Cook and Gary P. Scavone
+    Copyright (c) 1995--2016 Perry R. Cook and Gary P. Scavone
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation files
@@ -171,7 +171,10 @@ public:
     class basis.
   */
   void ignoreSampleRateChange( bool ignore = true ) { ignoreSampleRateChange_ = ignore; };
-
+  
+  //! Static method that frees memory from alertList_.
+  static void  clear_alertList(){std::vector<Stk *>().swap(alertList_);};
+  
   //! Static method that returns the current rawwave path.
   static std::string rawwavePath(void) { return rawwavepath_; }
 
@@ -265,7 +268,7 @@ protected:
     Possible future improvements in this class could include functions
     to convert to and return other data types.
 
-    by Perry R. Cook and Gary P. Scavone, 1995--2014.
+    by Perry R. Cook and Gary P. Scavone, 1995--2016.
 */
 /***************************************************/
 
@@ -303,6 +306,14 @@ public:
     checking is performed unless _STK_DEBUG_ is defined.
   */
   StkFloat operator[] ( size_t n ) const;
+    
+  //! Sum operator
+  /*!
+    The dimensions of the argument are expected to be the same as
+    self.  No range checking is performed unless _STK_DEBUG_ is
+    defined.
+  */
+  StkFrames operator+(const StkFrames &frames) const;
 
   //! Assignment by sum operator into self.
   /*!
@@ -373,13 +384,21 @@ public:
   */
   void resize( size_t nFrames, unsigned int nChannels, StkFloat value );
 
-  //! Copies a single channel
+  //! Retrieves a single channel
   /*!
     Copies the specified \c channel into \c destinationFrames's \c destinationChannel. \c destinationChannel must be between 0 and destination.channels() - 1 and
     \c channel must be between 0 and channels() - 1. destination.frames() must be >= frames().
     No range checking is performed unless _STK_DEBUG_ is defined.
   */
-  StkFrames& copyChannel(unsigned int channel,StkFrames& destinationFrames, unsigned int destinationChannel) const;
+  StkFrames& getChannel(unsigned int channel,StkFrames& destinationFrames, unsigned int destinationChannel) const;
+
+  //! Sets a single channel
+  /*!
+    Copies the \c sourceChannel of \c sourceFrames into the \c channel of self.
+    SourceFrames.frames() must be equal to frames().
+    No range checking is performed unless _STK_DEBUG_ is defined.
+  */
+  void setChannel(unsigned int channel,const StkFrames &sourceFrames,unsigned int sourceChannel);
 
   //! Return the number of channels represented by the data.
   unsigned int channels( void ) const { return nChannels_; };
@@ -468,6 +487,25 @@ inline StkFloat StkFrames :: operator() ( size_t frame, unsigned int channel ) c
 #endif
 
   return data_[ frame * nChannels_ + channel ];
+}
+    
+inline StkFrames StkFrames::operator+(const StkFrames &f) const
+{
+#if defined(_STK_DEBUG_)
+  if ( f.frames() != nFrames_ || f.channels() != nChannels_ ) {
+    std::ostringstream error;
+    error << "StkFrames::operator+: frames argument must be of equal dimensions!";
+    Stk::handleError( error.str(), StkError::MEMORY_ACCESS );
+  }
+#endif
+  StkFrames sum((unsigned int)nFrames_,nChannels_);
+  StkFloat *sumPtr = &sum[0];
+  const StkFloat *fptr = f.data_;
+  const StkFloat *dPtr = data_;
+  for (unsigned int i = 0; i < size_; i++) {
+    *sumPtr++ = *fptr++ + *dPtr++;
+  }
+  return sum;
 }
 
 inline void StkFrames :: operator+= ( StkFrames& f )

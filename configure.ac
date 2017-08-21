@@ -1,5 +1,5 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(STK, 4.5.0, gary@music.mcgill.ca, stk)
+AC_INIT(STK, 4.5.1, gary@music.mcgill.ca, stk)
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_SRCDIR(src/Stk.cpp)
 AC_CONFIG_FILES(Makefile src/Makefile projects/demo/Makefile projects/effects/Makefile projects/ragamatic/Makefile projects/examples/Makefile projects/examples/libMakefile projects/eguitar/Makefile)
@@ -167,7 +167,7 @@ if test $realtime = yes; then
     api="$api -D__MACOSX_CORE__"
     AC_MSG_RESULT(using CoreAudio)
     AC_CHECK_HEADER(CoreAudio/CoreAudio.h, [], [AC_MSG_ERROR(CoreAudio header files not found!)] )
-    LIBS="$LIBS -framework CoreAudio -framework CoreFoundation -framework CoreMidi" ], )
+    LIBS="$LIBS -framework CoreAudio -framework CoreFoundation -framework CoreMIDI" ], )
 
     # If no audio api flags specified, use CoreAudio
     if [test "$api" == ""; ] then
@@ -176,7 +176,7 @@ if test $realtime = yes; then
       AC_CHECK_HEADER(CoreAudio/CoreAudio.h,
       [],
       [AC_MSG_ERROR(CoreAudio header files not found!)] )
-      AC_SUBST( LIBS, ["-framework CoreAudio -framework CoreFoundation -framework CoreMidi"] )
+      AC_SUBST( LIBS, ["-framework CoreAudio -framework CoreFoundation -framework CoreMIDI"] )
     fi
 
     AC_CHECK_LIB(pthread, pthread_create, , AC_MSG_ERROR(RtAudio requires the pthread library!))
